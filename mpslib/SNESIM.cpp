@@ -16,7 +16,7 @@
 //    along with MPSlib (COPYING.LESSER).  If not, see <http://www.gnu.org/licenses/>.
 //
 #include <cctype>       // isspace
-#include <algorithm>    // std::random_shuffle std::remove_if
+#include <algorithm>    // std::remove_if
 #include <list>
 
 #include "SNESIM.h"

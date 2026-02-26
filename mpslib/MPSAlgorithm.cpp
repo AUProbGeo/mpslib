@@ -20,6 +20,7 @@
 #include <cctype>       // isspace
 #include <time.h>
 #include <map>
+#include <random>
 
 #include "MPSAlgorithm.h"
 #include "Coords3D.h"
@@ -1034,7 +1035,13 @@ void MPS::MPSAlgorithm::startSimulation(void) {
 			//Shuffling
 			if (_shuffleSgPath==1) {
 				// random shuffling
-				std::random_shuffle ( _simulationPath.begin(), _simulationPath.end() );
+				struct RandRng {
+					using result_type = int;
+					static constexpr result_type min() { return 0; }
+					static constexpr result_type max() { return RAND_MAX; }
+					result_type operator()() const { return rand(); }
+				};
+				std::shuffle( _simulationPath.begin(), _simulationPath.end(), RandRng{} );
 			} else if (_shuffleSgPath>1) {
 				// shuffling preferential to soft data
 				_shuffleSgPathPreferentialToSoftData(level, allocatedNodesFromSoftData);
