@@ -729,4 +729,167 @@ public:
 	*/
 	inline void setTiPath(const std::vector<int> &tiPath) {_tiPath = tiPath;}
 
+	// Additional getters/setters for programmatic parameter configuration
+
+	/**
+	* @brief Getter seed
+	* @return seed value
+	*/
+	inline float seed() const {return _seed;}
+	/**
+	* @brief Setter seed
+	* @param seed new seed value
+	*/
+	inline void setSeed(float seed) {_seed = seed;}
+
+	/**
+	* @brief Getter hdSearchRadius
+	* @return hard data search radius
+	*/
+	inline float hdSearchRadius() const {return _hdSearchRadius;}
+	/**
+	* @brief Setter hdSearchRadius
+	* @param hdSearchRadius new hard data search radius
+	*/
+	inline void setHdSearchRadius(float hdSearchRadius) {_hdSearchRadius = hdSearchRadius;}
+
+	/**
+	* @brief Getter shuffleEntropyFactor
+	* @return shuffle entropy factor
+	*/
+	inline int shuffleEntropyFactor() const {return _shuffleEntropyFactor;}
+	/**
+	* @brief Setter shuffleEntropyFactor
+	* @param shuffleEntropyFactor new shuffle entropy factor
+	*/
+	inline void setShuffleEntropyFactor(int shuffleEntropyFactor) {_shuffleEntropyFactor = shuffleEntropyFactor;}
+
+	/**
+	* @brief Getter sgWorldMinX
+	* @return simulation grid world origin X
+	*/
+	inline float sgWorldMinX() const {return _sgWorldMinX;}
+	/**
+	* @brief Setter sgWorldMinX
+	* @param sgWorldMinX new simulation grid world origin X
+	*/
+	inline void setSgWorldMinX(float sgWorldMinX) {_sgWorldMinX = sgWorldMinX;}
+
+	/**
+	* @brief Getter sgWorldMinY
+	* @return simulation grid world origin Y
+	*/
+	inline float sgWorldMinY() const {return _sgWorldMinY;}
+	/**
+	* @brief Setter sgWorldMinY
+	* @param sgWorldMinY new simulation grid world origin Y
+	*/
+	inline void setSgWorldMinY(float sgWorldMinY) {_sgWorldMinY = sgWorldMinY;}
+
+	/**
+	* @brief Getter sgWorldMinZ
+	* @return simulation grid world origin Z
+	*/
+	inline float sgWorldMinZ() const {return _sgWorldMinZ;}
+	/**
+	* @brief Setter sgWorldMinZ
+	* @param sgWorldMinZ new simulation grid world origin Z
+	*/
+	inline void setSgWorldMinZ(float sgWorldMinZ) {_sgWorldMinZ = sgWorldMinZ;}
+
+	/**
+	* @brief Getter sgCellSizeX
+	* @return simulation grid cell size X
+	*/
+	inline float sgCellSizeX() const {return _sgCellSizeX;}
+	/**
+	* @brief Setter sgCellSizeX
+	* @param sgCellSizeX new simulation grid cell size X
+	*/
+	inline void setSgCellSizeX(float sgCellSizeX) {_sgCellSizeX = sgCellSizeX;}
+
+	/**
+	* @brief Getter sgCellSizeY
+	* @return simulation grid cell size Y
+	*/
+	inline float sgCellSizeY() const {return _sgCellSizeY;}
+	/**
+	* @brief Setter sgCellSizeY
+	* @param sgCellSizeY new simulation grid cell size Y
+	*/
+	inline void setSgCellSizeY(float sgCellSizeY) {_sgCellSizeY = sgCellSizeY;}
+
+	/**
+	* @brief Getter sgCellSizeZ
+	* @return simulation grid cell size Z
+	*/
+	inline float sgCellSizeZ() const {return _sgCellSizeZ;}
+	/**
+	* @brief Setter sgCellSizeZ
+	* @param sgCellSizeZ new simulation grid cell size Z
+	*/
+	inline void setSgCellSizeZ(float sgCellSizeZ) {_sgCellSizeZ = sgCellSizeZ;}
+
+	/**
+	* @brief Getter maxCondData
+	* @return maximum conditional data
+	*/
+	inline int maxCondData() const {return _maxCondData;}
+	/**
+	* @brief Setter maxCondData
+	* @param maxCondData new maximum conditional data
+	*/
+	inline void setMaxCondData(int maxCondData) {_maxCondData = maxCondData;}
+
+	/**
+	* @brief Getter softDataCategories
+	* @return soft data categories
+	*/
+	inline std::vector<float> softDataCategories() const {return _softDataCategories;}
+	/**
+	* @brief Setter softDataCategories
+	* @param softDataCategories new soft data categories
+	*/
+	inline void setSoftDataCategories(const std::vector<float> &softDataCategories) {_softDataCategories = softDataCategories;}
+
+	/**
+	* @brief Getter softDataFileNames
+	* @return soft data filenames
+	*/
+	inline std::vector<std::string> softDataFileNames() const {return _softDataFileNames;}
+	/**
+	* @brief Setter softDataFileNames
+	* @param softDataFileNames new soft data filenames
+	*/
+	inline void setSoftDataFileNames(const std::vector<std::string> &softDataFileNames) {_softDataFileNames = softDataFileNames;}
+
+	/**
+	* @brief Getter maskDataFileName
+	* @return mask data filename
+	*/
+	inline std::string maskDataFileName() const {return _maskDataFileName;}
+	/**
+	* @brief Setter maskDataFileName
+	* @param maskDataFileName new mask data filename
+	*/
+	inline void setMaskDataFileName(const std::string &maskDataFileName) {_maskDataFileName = maskDataFileName;}
+
+	/**
+	* @brief Direct setter for hard data grid
+	* @param hdg hard data grid
+	*/
+	inline void setHardDataGrid(const std::vector<std::vector<std::vector<float>>> &hdg) {_hdg = hdg;}
+
+	/**
+	* @brief Direct setter for soft data grids
+	* @param sdg soft data grids (4D: category, Z, Y, X)
+	*/
+	inline void setSoftDataGrids(const std::vector<std::vector<std::vector<std::vector<float>>>> &sdg) {_softDataGrids = sdg;}
+
+	/**
+	* @brief Direct setter for mask data grid
+	* @param mask mask data grid
+	*/
+	inline void setMaskDataGrid(const std::vector<std::vector<std::vector<float>>> &mask) {_maskDataGrid = mask;}
+
 };

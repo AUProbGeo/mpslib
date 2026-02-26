@@ -7,6 +7,14 @@ from . import trainingimages as trainingimages
 # from . import trainingimages
 import time
 
+# Try to import native C++ bindings
+try:
+    from . import _mpslib_native
+    HAS_NATIVE_BINDINGS = True
+except ImportError:
+    _mpslib_native = None
+    HAS_NATIVE_BINDINGS = False
+
 
 def is_exe(filename):
     return os.path.isfile(filename) and os.access(filename, os.X_OK)
@@ -27,13 +35,14 @@ class mpslib:
                  soft_data_categories=np.arange(2), soft_data_fnam='soft.dat', n_threads=-1, verbose_level=0,
                  template_size=np.array([8, 7, 1]), n_multiple_grids=3, n_cond=16, n_cond_soft=1, n_min_node_count=0,
                  n_max_ite=1000000, n_max_cpdf_count=1, distance_measure=1, distance_max=0, distance_pow=1,
-                 max_search_radius=10000000, max_search_radius_soft=10000000,                  
-                 remove_gslib_after_simulation=1, gslib_combine=1, ti=np.empty(0), 
+                 max_search_radius=10000000, max_search_radius_soft=10000000,
+                 remove_gslib_after_simulation=1, gslib_combine=1, ti=np.empty(0),
                  colocate_dimension=0,
-                 do_estimation=0, 
+                 do_estimation=0,
                  do_entropy=0,
                  distance_min=-1, #OBSOLETE
-                 mpslib_exe_folder=''):
+                 mpslib_exe_folder='',
+                 use_native=False):
         '''Initialize variables in Class'''
 
         # Next few lines to keep compatibility with old (and misleading) use of O.par['dist_min']-->O.par['dist_max']
@@ -41,10 +50,16 @@ class mpslib:
             distance_max = distance_min
         
         self.blank_grid = None
-        self.blank_val = np.NaN
+        self.blank_val = np.nan
         self.parameter_filename = parameter_filename.lower()  # change string to lower case
         self.method = method.lower()  # change string to lower case
         self.verbose_level = verbose_level
+
+        # Native bindings configuration
+        self.use_native = use_native and HAS_NATIVE_BINDINGS
+        self._native_algo = None
+        if use_native and not HAS_NATIVE_BINDINGS:
+            print("Warning: Native bindings requested but not available. Falling back to subprocess mode.")
         
         self.remove_gslib_after_simulation = remove_gslib_after_simulation  # remove individual gslib fiels after simulation
         self.gslib_combine = gslib_combine  # combine realzations into one gslib file
@@ -509,6 +524,102 @@ class mpslib:
         return Omul
 
 
+    def _run_native(self, silent=False):
+        """
+        Run simulation using direct C++ bindings (in-process, no subprocess)
+
+        :param silent: boolean, determines if outputs should be written to screen
+        :return: returns boolean success if the simulation has been completed
+        """
+        if not HAS_NATIVE_BINDINGS:
+            raise Exception("Native bindings not available. Install with: pip install -e .")
+
+        import time
+
+        # Write TI file if we have it in memory (needed before initializing algorithm)
+        if hasattr(self, 'ti') and self.ti.size > 0:
+            eas.write_mat(self.ti, self.par['ti_fnam'])
+            ti_data = self.ti.astype(np.float32)
+        else:
+            if not os.path.isfile(self.par['ti_fnam']):
+                if self.verbose_level > -1:
+                    print('mpslib: Training image "%s" not found - USING DEFAULT!' % (self.par['ti_fnam']))
+                self.ti = trainingimages.strebelle(di=2)[0]
+                eas.write_mat(self.ti, self.par['ti_fnam'])
+                ti_data = self.ti.astype(np.float32)
+            else:
+                # Read TI from file
+                TI_OUT = eas.read(self.par['ti_fnam'])
+                ti_data = TI_OUT['Dmat'].astype(np.float32)
+
+        # Write hard/soft/mask data if set (needed before initializing algorithm)
+        if hasattr(self, 'd_soft'):
+            eas.write(self.d_soft, self.par['soft_data_fnam'])
+        if hasattr(self, 'd_hard'):
+            eas.write(self.d_hard, self.par['hard_data_fnam'])
+        if hasattr(self, 'd_mask'):
+            eas.write_mat(self.d_mask, self.par['mask_fnam'])
+
+        # Write parameter file
+        self.par_write()
+
+        # Instantiate the appropriate algorithm
+        if self.method == 'mps_genesim':
+            self._native_algo = _mpslib_native.ENESIM_GENERAL(self.parameter_filename)
+        elif self.method == 'mps_snesim_tree':
+            self._native_algo = _mpslib_native.SNESIMTree(self.parameter_filename)
+        elif self.method == 'mps_snesim_list':
+            self._native_algo = _mpslib_native.SNESIMList(self.parameter_filename)
+        else:
+            raise Exception(f"Unknown method for native bindings: {self.method}")
+
+        if self.verbose_level > 0:
+            print(f"mpslib: Running {self.method} with native C++ bindings")
+
+        # Run simulation
+        t_start = time.time()
+        try:
+            self._native_algo.startSimulation()
+            success = True
+        except Exception as e:
+            print(f"Native simulation failed: {e}")
+            success = False
+            return success
+
+        t_end = time.time()
+        self.time = t_end - t_start
+
+        if self.verbose_level > 0:
+            print(f"mpslib: Native simulation completed in {self.time:.2f}s")
+
+        # Retrieve results from C++ - currently still reading from files
+        # TODO: Direct memory access for better performance
+        self.sim = []
+        for i in range(0, self.par['n_real']):
+            filename = '%s_sg_%d.gslib' % (self.par['ti_fnam'], i)
+            time.sleep(.1)
+            filename_with_path = os.path.join(self.par['out_folder'], filename)
+            try:
+                OUT = eas.read(filename_with_path)
+                if self.verbose_level > 0:
+                    print('mpslib: Reading: %s' % (filename))
+                self.sim.append(OUT['Dmat'])
+            except:
+                print('Could not read gslib output file: %s' % filename)
+                success = False
+
+        # Clean up GSLIB files if requested
+        if self.remove_gslib_after_simulation == 1:
+            for i in range(0, self.par['n_real']):
+                filename = '%s_sg_%d.gslib' % (self.par['ti_fnam'], i)
+                filename_with_path = os.path.join(self.par['out_folder'], filename)
+                if os.path.exists(filename_with_path):
+                    os.remove(filename_with_path)
+                    if self.verbose_level > 1:
+                        print('mpslib: Removed: %s' % filename)
+
+        return success
+
     def run(self, normal_msg='Elapsed time (sec)', silent=False, thread=''):
         """
             *Description:*\n
@@ -521,6 +632,12 @@ class mpslib:
             """
         import os
         import time
+
+        # Use native bindings if enabled
+        if self.use_native:
+            return self._run_native(silent=silent)
+
+        # Subprocess mode (original implementation)
         success = False
 
         # update self.x, self.y, self.z
