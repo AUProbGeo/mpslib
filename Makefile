@@ -67,7 +67,7 @@ $(MPSLIB_SHARED): mpslib
 
 # Python bindings target
 .PHONY: python_bindings
-python_bindings: mpslib
+python_bindings: mpslib ENESIM_GENERAL.o SNESIMTree.o SNESIMList.o
 	$(CXX) -fPIC -O3 -std=c++11 -shared \
 		$(shell python3 -m pybind11 --includes) \
 		-I. -Impslib \
