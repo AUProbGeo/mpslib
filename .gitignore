@@ -11,3 +11,11 @@ mps_snesim_tree
 *.par
 .vscode
 *.zip
+
+# Build artifacts
+*.so
+*.dylib
+*.dll
+__pycache__/
+*.egg-info/
+.ipynb_checkpoints/

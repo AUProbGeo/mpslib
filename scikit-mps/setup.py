@@ -75,7 +75,7 @@ setup(
     keywords = ['geostatistics', 'simulation', 'MPS'], # arbitrary keywords
 
     packages = find_packages(),
-    install_requires=['numpy >= 1.0.2', 'matplotlib >= 1.0.0', 'scipy', 'panel', 'pyvista'],
+    install_requires=['numpy >= 1.0.2', 'matplotlib >= 1.0.0', 'scipy', 'panel', 'pyvista', 'pybind11>=2.6.0'],
     package_data = {
         # If any package contains *.txt or *.rst files, include them:
         '': ['*.txt', 'bin/mps_*.exe', 'bin/mps_snesim_tree', 'bin/mps_snesim_list', 'bin/mps_genesim', 'bin/install_latest_mpslib.sh' ],
