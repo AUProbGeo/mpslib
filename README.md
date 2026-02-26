@@ -254,3 +254,5 @@ Currently not used.
 - `1`: + Simulated realization(s) are shown in terminal
 - `2`: + Extra information is written to disk (Random path, ...)
 - `3`: + Debug information written to screen (in general not useful for an end-user)
+
+
