@@ -1,3 +1,5 @@
 ipykernel
 nbsphinx
 myst-nb
+sphinx_rtd_theme>=0.5.0
+

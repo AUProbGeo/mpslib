@@ -7,23 +7,27 @@
 MPSlib provides a set of algorithms for simulation of models based on a multiple point
 statistical model inferred from a training image.
 
+Check out these set of Python notebooks, to get an idea of what MPSlib can do: https://mpslib.readthedocs.io/en/latest/Notebooks/index.html
+
+
 The goal of developing these codes has been to produce a set of algorithms, based
 on sequential simulation, for simulation of multiple point statistical models.
 The code should be easy to compile and extend, and should be allowed for both
 commercial and non-commercial use.
 
-> MPSlib (version 1.0) has been developed by
-[I-GIS](http://www.i-gis.dk/)  (Le Thanh Vu and Torben Bach) 
-and
-[Solid Earth Physics, Niels Bohr Institute](http://imgp.nbi.ku.dk/) (Thomas Mejer Hansen).
-
-> MPSlib (version >1.0) maintained by
-Thomas Mejer Hansen (tmeha@geo.au.dk)
-
 Development has been funded by the Danish National Hightech Foundation (now: the Innovation fund) through the ERGO (Effective high-resolution Geological Modeling) project, a collaboration between
 [IGIS](http://i-gis.dk/),
 [GEUS](http://geus.dk/), and
 [Niels Bohr Institute](http://nbi.ku.dk/).
+
+MPSlib (version 1.0) has been developed by
+[I-GIS](http://www.i-gis.dk/)  (Le Thanh Vu and Torben Bach) 
+and
+[Solid Earth Physics, Niels Bohr Institute](http://imgp.nbi.ku.dk/) (Thomas Mejer Hansen).
+
+MPSlib (version >1.0) is maintained by
+[Thomas Mejer Hansen](https://pure.au.dk/portal/da/persons/tmeha%40geo.au.dk), [Department of Geoscience](http://geo.au.dk/), [Aarhus University](http://au.dk/).
+
 
 ## Try in Google Colab [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ergosimulation/mpslib/blob/master/scikit-mps/examples/mpslib_in_google_colab.ipynb)
 Try out MPSlib using the Python interface (scikit-mps) through Google Colab.

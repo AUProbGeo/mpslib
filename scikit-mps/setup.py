@@ -15,7 +15,7 @@ with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name = "scikit-mps",
-    version = "0.4.1",
+    version = "1.5.0",
     description = 'Multiple point statistical (MPS) simulation',
     long_description=long_description,
     long_description_content_type='text/x-rst',

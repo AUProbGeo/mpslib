@@ -4,9 +4,6 @@ scikit-mps: A python interface to MPSlib
 .. image:: https://img.shields.io/pypi/v/scikit-mps.svg?style=flat-square
     :target: https://pypi.org/project/scikit-mps
 
-.. image:: https://img.shields.io/pypi/pyversions/scikit-mps.svg?style=flat-square
-    :target: https://pypi.org/project/scikit-mps
-
 .. image:: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square
     :target: https://en.wikipedia.org/wiki/MIT_License
 

@@ -16,7 +16,7 @@ The assumption of spatial independence is critical. If the uncertain information
 
 MPSlib allow conditioning to both co-located soft data (mps_snesim_tree and mps_genesim) and non-co-located soft data (mps_genesim). The implementation of soft in MPSlib is described in detail in in [HANSEN2018]_.
 
-Soft data must be provided as as EAS file. If a training image with `Ncat` categories is used
+Soft data must be provided as an EAS file. If a training image with `Ncat` categories is used
 then the EAS file must contain N=3+`Ncat` columns. The first three must be ´X´, `Y`, and `Z`.
 The the following columns provide the probability of each category. 
 Column 4 (the first column with soft data) refer to the probability of the category with the lowest number in the training image. 
@@ -66,6 +66,20 @@ The default path in MPSlib is therefore the `preferential` path, that can select
    ...
    
 
+The behavior of `mps_genesim` with soft data is controlled by the number of soft conditional data, and the max search radius of conditional soft data. To use co-located soft data, the number of soft data is set to 1, and the search radius is set to 0 as :
+
+.. code-block:: python
+   :linenos:
+   :lineno-start: 17
+   :emphasize-lines: 4
+
+   ...
+   Max number of conditional point: Nhard, Nsoft# 16 1
+   ...
+   Max Search Radius for conditional data [hard,soft] # 10000000 0
+   ...
+
+
 Figure :numref:`prefpath` shows the point wise mean of 100 realizations using the soft data described above, in case using a sequential, random and preferential simulation path (from `mpslib_hard_as_soft_data.py <https://github.com/ergosimulation/mpslib/blob/master/scikit-mps/examples/mpslib_hard_as_soft_data.py>`_):
 .
 
@@ -86,12 +100,13 @@ Non Co-located soft data
 ------------------------
 If soft information is scattered, and located relatively far away from each other, then using only co-located soft data my work well. But, when soft information is more densely available, using only co-located soft data results in disregarding available information.
 
-`mps_genesim` can handle non-colocated soft information running both in ENESIM mode (using >1 match in the training image) and Direct Sampling mode  (using only 1 match in the training image). In both cases one samples from the following conditional distribution during sequential simulation:
+`mps_genesim` can handle non-colocated soft information running both in ENESIM mode and Direct Sampling mode (using only 1 match in the training image). In both cases one samples from the following conditional distribution during sequential simulation:
 
 .. math::
    f(m_i | I_{hard}, I_{soft}) = f_{TI}(m_i | \mathbf{m}_c) * \prod_{j=1}^{Nc_{soft}} f_{soft}(m_j) 
 
-where :math:`Nc_{soft}` refer to the number of (the closest) soft conditional points to use. This number of defined right next to the maximum number of hard data used for condisioning. In the example below, the closest 25 hard and 3 soft data is used
+where :math:`Nc_{soft}` refer to the number of (the closest) soft conditional points to use. This number of defined right next to the maximum number of hard data used for condisioning. 
+In order to use non-co-located soft data, the search radius for soft data must be set to a value larger than 0. In the example below, the closest 25 hard and 3 soft data is used:
 
 .. code-block:: 
 
@@ -101,10 +116,15 @@ where :math:`Nc_{soft}` refer to the number of (the closest) soft conditional po
 
    Number of realizations # 1
    Random Seed (0 `random` seed) # 1 
-   Maximum number of counts for condtitional pdf # 1
+   Maximum number of counts for conditional pdf # 1
    Max number of conditional point: Nhard, Nsoft# 25 3
    Max number of iterations # 1000000
    ...
+   Max Search Radius for conditional data [hard,soft] # 10000000 10000000
+   ...
+
+
+
 
 Figure :numref:`nonco_prefpath` shows the point wise mean of 100 realizations using a sequential, random and preferential simulation path (from `mpslib_hard_as_soft_data.py <https://github.com/ergosimulation/mpslib/blob/master/scikit-mps/examples/mpslib_hard_as_soft_data.py>`_) using two non-colocated soft data.
 
