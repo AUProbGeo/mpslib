@@ -503,7 +503,8 @@ class mpslib:
                     # only us sim data if the exist
                     self.sim = self.sim + Omul[ithread].sim
                 else:
-                    print('parallel: could not use data from thread %d' % ithread)
+                    if self.verbose_level >= 0:
+                        print('parallel: could not use data from thread %d' % ithread)
 
         if self.par['do_entropy']==1:
             self.H = np.mean(self.SI)
@@ -758,7 +759,8 @@ class mpslib:
                 self.sim.append(OUT['Dmat'])
                 success = True
             except:
-                print('%s:Could not read gslib output file: %s' % (thread,filename))
+                if self.verbose_level >= 0:
+                    print('%s:Could not read gslib output file: %s' % (thread,filename))
                 success = False
 
         # read entropy information
@@ -773,7 +775,8 @@ class mpslib:
                 self.Hstd=np.std(self.SI)
                 success = True
             except:
-                print('%s:Could not read selfinformation from: %s' % (thread,filename))
+                if self.verbose_level >= 0:
+                    print('%s:Could not read selfinformation from: %s' % (thread,filename))
                 success = False
 
 
@@ -801,7 +804,8 @@ class mpslib:
                 title = 'Realizations from %s - %s' % (self.method, d_cur['title'])
                 eas.write(Dall, filename_out, title=title, header=header)
             except:
-                print('%s:Could read combine gslib output files - perhaps empty output?' % (thread) )
+                if self.verbose_level >= 0:
+                    print('%s:Could not read/combine gslib output files - perhaps empty output?' % (thread))
 
         # Load conditional Entropy
         if self.par['do_entropy']==1:
@@ -873,11 +877,13 @@ class mpslib:
             if os.path.isfile(filename) is False:
                 s = '{} file not found'.format(filename)
             else:
-                print('loading entropy from %s' % (filename) )
+                if self.verbose_level >= 0:
+                    print('loading entropy from %s' % (filename))
                 OUT = eas.read(filename)
                 self.Hcond = OUT['Dmat']
-        else:                        
-            print('Cannot load entropy results, as entropy is not performed')
+        else:
+            if self.verbose_level >= 0:
+                print('Cannot load entropy results, as entropy is not performed')
             
             
     def load_estimation(self):
@@ -890,13 +896,16 @@ class mpslib:
             for i in range(NC):
                 filename = '%s_cg_%d.gslib' % (self.par['ti_fnam'],i)
                 if os.path.isfile(filename) is False:
-                    print('%s: file note founr' % (filename))
+                    if self.verbose_level >= 0:
+                        print('%s: file not found' % (filename))
                 else:
-                    print('loading entropy from %s' % (filename) )
+                    if self.verbose_level >= 0:
+                        print('loading estimation from %s' % (filename))
                     OUT = eas.read(filename)
                     self.est.append(OUT['Dmat'])
-        else:                        
-            print('Cannot load estimation results, as estimation is not performed')
+        else:
+            if self.verbose_level >= 0:
+                print('Cannot load estimation results, as estimation is not performed')
 
     # delete gslib files
     def delete_gslib(self, remove_all_gslib=0):
@@ -1016,7 +1025,8 @@ class mpslib:
         iz=0
         n=0
         n_nonnan =  np.count_nonzero(~np.isnan(self.sim[i]))
-        print("Number of non-nan data: %d" % (n_nonnan))
+        if self.verbose_level >= 0:
+            print("Number of non-nan data: %d" % (n_nonnan))
         
         # MAKE sure nans are set
         self.set_nan()
@@ -1105,7 +1115,8 @@ class mpslib:
             plot.plot(emode, origin=self.par['origin'], spacing=self.par['grid_cell_size'],title='Etype mode')
 
         else:
-            print('No realizations to compute Etypes from')
+            if self.verbose_level >= 0:
+                print('No realizations to compute Etypes from')
         return 
     
     # plot TI
@@ -1119,13 +1130,15 @@ class mpslib:
                 E=eas.read(self.par['ti_fnam'])
                 self.ti = E['Dmat']
             except:
-                print('Could not load %s, and can then not plot the training image' % self.par['ti_fnam'])
+                if self.verbose_level >= 0:
+                    print('Could not load %s, and can then not plot the training image' % self.par['ti_fnam'])
                 return -1
-                    
-        if hasattr(self,'ti'):           
+
+        if hasattr(self,'ti'):
             plot.plot(self.ti, title="Training image - %s" % (self.par['ti_fnam']), slice=1   )
         else:
-            print('Could not plot TI')
+            if self.verbose_level >= 0:
+                print('Could not plot TI')
     
     def plot_simulation_grid(self):
         '''
@@ -1240,7 +1253,8 @@ class mpslib:
 
                 
         else:
-            print('No soft data to plot')
+            if self.verbose_level >= 0:
+                print('No soft data to plot')
                 
                 
     
