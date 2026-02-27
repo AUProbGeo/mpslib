@@ -386,11 +386,14 @@ class mpslib:
         from multiprocessing import cpu_count
         import time
 
-        #Ncpu = np.int8(cpu_count()/1)
-        Ncpu = np.int8(np.ceil(cpu_count()*.8))
-        #Ncpu = np.int8(cpu_count()/2)
-        
-        
+        Ncpu_total = int(cpu_count())
+        try:
+            import psutil
+            Ncpu = psutil.cpu_count(logical=False) or Ncpu_total
+        except ImportError:
+            Ncpu = int(np.ceil(Ncpu_total * 0.8))
+
+
         # make sure hard data, soft data and mask data are given as variables
         # and not only filenams (such that these are written to the thread folders)
         
@@ -416,54 +419,44 @@ class mpslib:
                 self.d_soft=E['D']
 
 
-        # Set number of threads to use
+        # Set number of threads to use (never more than n_real)
         if (self.par['n_threads']<1):
-            Nthreads=Ncpu;
-            if (Ncpu/self.par['n_real'])>1:
-                Nthreads = self.par['n_real']
+            # Auto mode: apply 80% cap
+            Nthreads = min(Ncpu, self.par['n_real'])
         else:
-            Nthreads = self.par['n_threads'];
+            # Explicit mode: respect user's request, no 80% cap
+            Nthreads = min(int(self.par['n_threads']), self.par['n_real'])
 
-        real_per_thread= np.ceil(self.par['n_real']/Nthreads).astype(int)
-        
+        n_real = self.par['n_real']
+        # Distribute realizations as evenly as possible across threads.
+        # Some threads get floor(n_real/Nthreads), others get floor+1.
+        real_base = n_real // Nthreads
+        n_extra = n_real % Nthreads  # first n_extra threads get one extra realization
+        # Reals per thread: list of length Nthreads
+        reals_per_thread = [real_base + (1 if i < n_extra else 0) for i in range(Nthreads)]
+
         if self.verbose_level>0:
-            print('parallel: using %d threads to simulate %d realizations' % (Nthreads,self.par['n_real']))
-            print('parallel: with up to %g relizations per thread' % real_per_thread)
+            print('parallel: using %d threads to simulate %d realizations' % (Nthreads, n_real))
+            print('parallel: with %d-%d realizations per thread' % (real_base, real_base + (1 if n_extra else 0)))
 
 
         #%% Setup structure to be parsed to parallel
-        Oall=[];
-        n_real =  self.par['n_real']
-        n_real_sum = 0
-        n_real_left = n_real-n_real_sum 
-            
-        #for ithread in range(Nthreads):
-        ithread=-1
-        while (n_real_left>0):
-            ithread = ithread+1
+        Oall=[]
+
+        for ithread in range(Nthreads):
             OO=copy.deepcopy(self)
             OO.parameter_filename = '%s_%03d.txt' % (self.method,ithread)
             OO.par['rseed']=self.par['rseed']+ithread
             OO.par['ti_fnam'] = 'ti_thread_%03d.dat' % ithread
-            if (n_real_left>real_per_thread):
-                OO.par['n_real'] = real_per_thread
-            else:
-                # LAST THREAD
-                OO.par['n_real'] = n_real_left
-            
-            n_real_sum = n_real_sum +  OO.par['n_real']
-            
-            # print('Thread %2d %2d/%2d' % (ithread,OO.par['n_real'],n_real_left) )
-            
+            OO.par['n_real'] = reals_per_thread[ithread]
+
             OO.par['out_folder']='./thread%03d' % ithread
             if not (os.path.isdir(OO.par['out_folder'])):
-                os.mkdir(OO.par['out_folder'])    
+                os.mkdir(OO.par['out_folder'])
             Ocur=[]
             Ocur.append(OO)
             Ocur.append('%03d' % ithread)
             Oall.append(Ocur)
-                
-            n_real_left = n_real-n_real_sum 
             
         # Wait some time to make sure all files have been written!!
         #time.sleep(5)
@@ -473,10 +466,11 @@ class mpslib:
         # Perform simulation in parallal
         t_start = time.time()
         if self.verbose_level>-1:
-            print('parallel: Using %d of max %d threads' % (Ncpu_used,Ncpu) )
+            Ncpu_max = Ncpu if self.par['n_threads'] < 1 else Ncpu_total
+            print('parallel: Using %d of max %d threads (%d logical processors)' % (Ncpu_used, Ncpu_max, Ncpu_total))
             #print('__name__ = %s' % __name__)
         freeze_support()
-        p = Pool(Ncpu)
+        p = Pool(Ncpu_used)
         Omul = p.map(mpslib.run_unpack, Oall)
 
         t_end = time.time()
@@ -503,7 +497,7 @@ class mpslib:
                     # only us sim data if the exist
                     self.sim = self.sim + Omul[ithread].sim
                 else:
-                    if self.verbose_level >= 0:
+                    if self.verbose_level > 0:
                         print('parallel: could not use data from thread %d' % ithread)
 
         if self.par['do_entropy']==1:
@@ -759,7 +753,7 @@ class mpslib:
                 self.sim.append(OUT['Dmat'])
                 success = True
             except:
-                if self.verbose_level >= 0:
+                if self.verbose_level > 0:
                     print('%s:Could not read gslib output file: %s' % (thread,filename))
                 success = False
 
@@ -775,7 +769,7 @@ class mpslib:
                 self.Hstd=np.std(self.SI)
                 success = True
             except:
-                if self.verbose_level >= 0:
+                if self.verbose_level > 0:
                     print('%s:Could not read selfinformation from: %s' % (thread,filename))
                 success = False
 
@@ -804,7 +798,7 @@ class mpslib:
                 title = 'Realizations from %s - %s' % (self.method, d_cur['title'])
                 eas.write(Dall, filename_out, title=title, header=header)
             except:
-                if self.verbose_level >= 0:
+                if self.verbose_level > 0:
                     print('%s:Could not read/combine gslib output files - perhaps empty output?' % (thread))
 
         # Load conditional Entropy
